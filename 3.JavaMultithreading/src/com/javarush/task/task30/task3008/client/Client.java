@@ -6,6 +6,7 @@ import com.javarush.task.task30.task3008.Message;
 import com.javarush.task.task30.task3008.MessageType;
 
 import java.io.IOException;
+import java.net.Socket;
 
 public class Client {
     protected Connection connection;
@@ -109,22 +110,32 @@ public class Client {
         }
 
         protected void clientMainLoop() throws IOException, ClassNotFoundException {
-            while (true ) {
-
-                    Message message = connection.receive();
-                    if (message.getType() == MessageType.TEXT) {
-                        processIncomingMessage(message.getData());
-                    } else if (message.getType() == MessageType.USER_ADDED) {
-                        informAboutAddingNewUser(message.getData());
-                    } else if (message.getType() == MessageType.USER_REMOVED) {
-                        informAboutDeletingNewUser(message.getData());
-                    } else {
-                        throw new IOException("Unexpected MessageType");
-                    }
-                    if (Thread.currentThread().isInterrupted()) break;
-
-            }
-
+            do {
+                Message message = connection.receive();
+                if (message.getType() == MessageType.TEXT) {
+                    processIncomingMessage(message.getData());
+                } else if (message.getType() == MessageType.USER_ADDED) {
+                    informAboutAddingNewUser(message.getData());
+                } else if (message.getType() == MessageType.USER_REMOVED) {
+                    informAboutDeletingNewUser(message.getData());
+                } else {
+                    throw new IOException("Unexpected MessageType");
+                }
+            } while (!Thread.currentThread().isInterrupted());
         }
+
+        public void run() {
+            String serverAddress = getServerAddress();
+            int serverPort = getServerPort();
+            try {
+                Socket socket = new Socket(serverAddress, serverPort);
+                connection = new Connection(socket);
+                clientHandshake();
+                clientMainLoop();
+            } catch (IOException | ClassNotFoundException e) {
+                notifyConnectionStatusChanged(false);
+            }
+        }
+
     }
 }
