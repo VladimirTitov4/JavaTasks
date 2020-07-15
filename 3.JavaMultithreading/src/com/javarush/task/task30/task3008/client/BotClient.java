@@ -2,9 +2,11 @@ package com.javarush.task.task30.task3008.client;
 
 import com.javarush.task.task30.task3008.ConsoleHelper;
 
-import java.awt.*;
 import java.io.IOException;
-import java.util.Random;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 
 public class BotClient extends Client {
 
@@ -40,9 +42,48 @@ public class BotClient extends Client {
         @Override
         protected void processIncomingMessage(String message) {
             ConsoleHelper.writeMessage(message);
-            String[] arr = message.split(":");
-            String userName = arr[0];
-            String userMessage = arr[1];
+
+            if (message.split(":").length==2) {
+                String[] arr = message.split(":");
+                String userMessage = arr[1];
+
+                SimpleDateFormat format;
+
+                switch (message.substring(message.indexOf(":") + 2)) {
+                    case "дата":
+                        format = new SimpleDateFormat("d.MM.YYYY");
+                        break;
+                    case "день":
+                        format = new SimpleDateFormat("d");
+                        break;
+                    case "месяц":
+                        format = new SimpleDateFormat("MMMM");
+                        break;
+                    case "год":
+                        format = new SimpleDateFormat("YYYY");
+                        break;
+                    case "время":
+                        format = new SimpleDateFormat("H:mm:ss");
+                        break;
+                    case "час":
+                        format = new SimpleDateFormat("H");
+                        break;
+                    case "минуты":
+                        format = new SimpleDateFormat("m");
+                        break;
+                    case "секунды":
+                        format = new SimpleDateFormat("s");
+                        break;
+                    default:
+                        format = null;
+                }
+                if (format != null) {
+                    sendTextMessage("Информация для " + message.substring(0, message.indexOf(':')) + ": " + format.format(Calendar.getInstance().getTime()));
+                }
+
+            }
         }
+
+
     }
 }
